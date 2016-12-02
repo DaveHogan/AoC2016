@@ -8,9 +8,9 @@ namespace AdventOfCode2016
     {
         public static void Main(string[] args)
         {
-            // Day1.Execute();
-            Day2.Execute();
+            Day2Part2.Execute();
 
+            Console.WriteLine("");
             Console.WriteLine("Press any key to close");
             Console.ReadKey();
         }
