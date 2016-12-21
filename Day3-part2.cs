@@ -5,6 +5,41 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode2016
 {
+    /*
+     
+        --- Day 3: Squares With Three Sides ---
+
+        Now that you can think clearly, you move deeper into the labyrinth of hallways and office furniture that makes up this part of Easter Bunny HQ. This must be a graphic design department; the walls are covered in specifications for triangles.
+
+        Or are they?
+
+        The design document gives the side lengths of each triangle it describes, but... 5 10 25? Some of these aren't triangles. You can't help but mark the impossible ones.
+
+        In a valid triangle, the sum of any two sides must be larger than the remaining side. For example, the "triangle" given above is impossible, because 5 + 10 is not larger than 25.
+
+        In your puzzle input, how many of the listed triangles are possible?
+
+        Your puzzle answer was 917.
+
+        The first half of this puzzle is complete! It provides one gold star: *
+
+        --- Part Two ---
+
+        Now that you've helpfully marked up their design documents, it occurs to you that triangles are specified in groups of three vertically. Each set of three numbers in a column specifies a triangle. Rows are unrelated.
+
+        For example, given the following specification, numbers with the same hundreds digit would be part of the same triangle:
+
+        101 301 501
+        102 302 502
+        103 303 503
+        201 401 601
+        202 402 602
+        203 403 603
+        In your puzzle input, and instead reading by columns, how many of the listed triangles are possible?
+
+     */
+
+
     public class Day3Part2
     {
         internal static void Execute()
@@ -15,65 +50,51 @@ namespace AdventOfCode2016
 
         }
 
+
+        public bool IsTriangle(int a, int b, int c)
+        {
+            return a + b > c && b + c > a && a + c > b;
+        }
+
         private void Calculate()
         {
             var lines = Input.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            var data = lines.Select(line => line.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).
-            Where(c => string.IsNullOrWhiteSpace(c) == false).
-            Select(int.Parse).ToArray()).
-            Select(lineParts => new Tuple<int, int, int>(lineParts[0], lineParts[1], lineParts[2])).ToList();
+            var data = lines.Select(line => line.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                                                .Where(c => string.IsNullOrWhiteSpace(c) == false)
+                                                .Select(int.Parse).ToArray())
+                                                .Select(lineParts => new Tuple<int, int, int>(lineParts[0], lineParts[1], lineParts[2]))
+                                                .ToList();
 
+            int total = 0;
 
-            int count = 0;
-            var data1 = data.Select(c => c).OrderBy(c => c.Item1).ToList();
-            while (data1.Any())
+            int loopCount = data.Count / 3;
+            for (int i = 0; i < loopCount; i++)
             {
-                var dataSet = data1.Take(3).Skip(0).ToArray();
-                var one = GetNearestHundredth(dataSet.First().Item1);
-                
-                if(dataSet.Count(c => GetNearestHundredth(c.Item1) == one) == 3)
-                    count++;
+                var threeRows = data.Skip((i * 3)).Take(3).ToList();
 
-                foreach (var line in dataSet)
-                    data1.Remove(line);
-            }
-            var data2 = data.Select(c => c).OrderBy(c => c.Item2).ToList();
-            while (data2.Any())
-            {
-                var dataSet = data2.Take(3).Skip(0).ToArray();
-                var two = GetNearestHundredth(dataSet.First().Item2);
+                if (IsTriangle(threeRows[0].Item1, threeRows[1].Item1, threeRows[2].Item1))
+                {
+                    total++;
+                }
+                if (IsTriangle(threeRows[0].Item2, threeRows[1].Item2, threeRows[2].Item2))
+                {
+                    total++;
+                }
+                if (IsTriangle(threeRows[0].Item3, threeRows[1].Item3, threeRows[2].Item3))
+                {
+                    total++;
+                }
 
-                if (dataSet.Count(c => GetNearestHundredth(c.Item2) == two) == 3)
-                    count++;
-
-                foreach (var line in dataSet)
-                    data2.Remove(line);
-            }
-            var data3 = data.Select(c => c).OrderBy(c => c.Item3).ToList();
-            while (data3.Any())
-            {
-                var dataSet = data3.Take(3).Skip(0).ToArray();
-                var three = GetNearestHundredth(dataSet.First().Item3);
-
-                if (dataSet.Count(c => GetNearestHundredth(c.Item3) == three) == 3)
-                    count++;
-
-                foreach (var line in dataSet)
-                    data3.Remove(line);
             }
 
-            // 62 - too low
-            // 186 - too low
-            // 1716 - wrong
-            Console.WriteLine(count);
+            // 1734 - wrong
+            // 1649 - wrong
+
+            Console.WriteLine(total);
         }
 
-        private int GetNearestHundredth(int item1)
-        {
-            return (int)Math.Floor(Math.Round((decimal) (item1/100)));
-        }
 
-        public string Input => @"330  143  338
+        public string Input => @"  330  143  338
   769  547   83
   930  625  317
   669  866  147

@@ -5,28 +5,45 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode2016
 {
+
+    /*
+        --- Day 3: Squares With Three Sides ---
+
+        Now that you can think clearly, you move deeper into the labyrinth of hallways and office furniture that makes up this part of Easter Bunny HQ. This must be a graphic design department; the walls are covered in specifications for triangles.
+
+        Or are they?
+
+        The design document gives the side lengths of each triangle it describes, but... 5 10 25? Some of these aren't triangles. You can't help but mark the impossible ones.
+
+        In a valid triangle, the sum of any two sides must be larger than the remaining side. For example, the "triangle" given above is impossible, because 5 + 10 is not larger than 25.
+
+        In your puzzle input, how many of the listed triangles are possible?
+
+    */
     public class Day3
     {
         internal static void Execute()
         {
-
             var d = new Day3();
             d.Calculate();
-
+        }
+        public bool IsTriangle(int a, int b, int c)
+        {
+            return a + b > c && b + c > a && a + c > b;
         }
 
         private void Calculate()
         {
             var lines = Input.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            var data = lines.Select(line => line.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Where(c => string.IsNullOrWhiteSpace(c) == false).Select(int.Parse).ToArray()).Select(lineParts => new Tuple<int, int, int>(lineParts[0], lineParts[1], lineParts[2])).ToList();
+            var numberOfTriangles = lines
+                .Select(line => line.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
+                    .Where(c => string.IsNullOrWhiteSpace(c) == false)
+                    .Select(int.Parse).ToArray())
+                .Select(c => IsTriangle(c[0], c[1], c[2]))
+                .Count(c => c == true);
 
-            Console.WriteLine(data.Count(c => 
-                (c.Item1 + c.Item2 > c.Item3)
-                && (c.Item1 + c.Item3 > c.Item2)
-                && (c.Item2 + c.Item3 > c.Item1)
-            ));
 
-
+            Console.WriteLine(numberOfTriangles);
         }
 
         public string Input => @"330  143  338
