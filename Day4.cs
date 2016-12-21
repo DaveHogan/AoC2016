@@ -6,20 +6,75 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode2016
 {
+    /*
+        --- Day 4: Security Through Obscurity ---
+
+        Finally, you come across an information kiosk with a list of rooms. Of course, the list is encrypted and full of decoy data, but the instructions to decode the list are barely hidden nearby. Better remove the decoy data first.
+
+        Each room consists of an encrypted name (lowercase letters separated by dashes) followed by a dash, a sector ID, and a checksum in square brackets.
+
+        A room is real (not a decoy) if the checksum is the five most common letters in the encrypted name, in order, with ties broken by alphabetization. For example:
+
+        aaaaa-bbb-z-y-x-123[abxyz] is a real room because the most common letters are a (5), b (3), and then a tie between x, y, and z, which are listed alphabetically.
+        a-b-c-d-e-f-g-h-987[abcde] is a real room because although the letters are all tied (1 of each), the first five are listed alphabetically.
+        not-a-real-room-404[oarel] is a real room.
+        totally-real-room-200[decoy] is not.
+        Of the real rooms from the list above, the sum of their sector IDs is 1514.
+
+        What is the sum of the sector IDs of the real rooms?
+
+
+        --- Part Two ---
+
+        With all the decoy data out of the way, it's time to decrypt this list and get moving.
+
+        The room names are encrypted by a state-of-the-art shift cipher, which is nearly unbreakable without the right software.
+        However, the information kiosk designers at Easter Bunny HQ were not expecting to deal with a master cryptographer like yourself.
+
+        To decrypt a room name, rotate each letter forward through the alphabet a number of times equal to the room's sector ID. 
+        A becomes B, B becomes C, Z becomes A, and so on. Dashes become spaces.
+
+        For example, the real name for qzmt-zixmtkozy-ivhz-343 is very encrypted name.
+
+        What is the sector ID of the room where North Pole objects are stored?     
+ 
+    */
     public class Day4
     {
         public class Room
         {
             public string EncryptedName { get; set; }
-            public string SectorId { get; set; }
+            public int SectorId { get; set; }
             public string Checksum { get; set; }
+            public string DecryptedName => MoveStringForward(EncryptedName, SectorId);
+
+            private string MoveStringForward(string input, int times)
+            {
+                var chars = input.ToCharArray();
+                var output = "";
+                foreach (var c in chars)
+                {
+                    output += MoveCharFoward(c, times);
+                }
+                return output;
+            }
+            private char MoveCharFoward(char c, int times)
+            {
+                var alpha = "abcdefghijklmnopqrstuvwxyz";
+                var i = alpha.IndexOf(c) + times;
+                while (i >= alpha.Length)
+                    i = i - alpha.Length;
+
+                return alpha.ToCharArray(i, 1).First();
+            }
+
 
             public static Room Parse(string input)
             {
-                var encName = input.Substring(0, input.LastIndexOf("-")).Replace("-","");
-                var sectId = input.Substring(input.LastIndexOf("-")+1, (input.IndexOf("[")- input.LastIndexOf("-"))-1);
-               var checkSum = input.Substring(input.IndexOf("[", StringComparison.Ordinal) + 1, (input.IndexOf("]") - input.IndexOf("[", StringComparison.Ordinal) - 1));
-                return new Room() {Checksum = checkSum, EncryptedName = encName,SectorId = sectId};
+                var encName = input.Substring(0, input.LastIndexOf("-")).Replace("-", "");
+                var sectId = Int32.Parse(input.Substring(input.LastIndexOf("-") + 1, (input.IndexOf("[") - input.LastIndexOf("-")) - 1));
+                var checkSum = input.Substring(input.IndexOf("[", StringComparison.Ordinal) + 1, (input.IndexOf("]") - input.IndexOf("[", StringComparison.Ordinal) - 1));
+                return new Room() { Checksum = checkSum, EncryptedName = encName, SectorId = sectId };
             }
         }
 
@@ -31,15 +86,14 @@ namespace AdventOfCode2016
 
         private void Calculate()
         {
-            var total = 0;
-
             var lines = Input.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(Room.Parse);
+            List<Room> goodRooms = new List<Room>();
             foreach (var line in lines)
             {
                 var letters = line.EncryptedName.ToCharArray();
                 var letterWithCount =
                     letters.GroupBy(x => x)
-                        .Select(z => new {z.Key, Count = z.Count()})
+                        .Select(z => new { z.Key, Count = z.Count() })
                         .OrderByDescending(x => x.Count)
                         .ThenBy(x => x.Key)
                         .Take(5);
@@ -48,20 +102,24 @@ namespace AdventOfCode2016
                 foreach (var c in letterWithCount)
                 {
                     calcCheck += c.Key.ToString();
-
                 }
-                
 
-                if (line.Checksum== calcCheck)
+                if (line.Checksum == calcCheck)
                 {
-                    total += int.Parse(line.SectorId);
+                    goodRooms.Add(line);
+
                 }
-                Console.WriteLine(line);
             }
-            // 830 -- too low
-            // 184593 -- too high
-            Console.WriteLine(total);
+
+            // Part I Answer
+            Console.WriteLine(goodRooms.Sum(c => c.SectorId));
+
+
+            var northPoleRoom = goodRooms.First(c => c.DecryptedName.StartsWith("northpole"));
+            Console.WriteLine($"{northPoleRoom.DecryptedName} can be found at sector {northPoleRoom.SectorId}");
+
         }
+
 
         private bool checkSumPasses(string checksum, IEnumerable<char> allowedChars)
         {
